@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <SourceFile>D:/Coding/Fun Ideas/Bro Castle/TowerDefenseGame/Content/Font.spritefont</SourceFile>
+  <SourceTime>2025-10-03T15:33:20.7299514-04:00</SourceTime>
+  <DestFile>D:/Coding/Fun Ideas/Bro Castle/TowerDefenseGame/Content/bin/DesktopGL/Content/Font.xnb</DestFile>
+  <DestTime>2025-10-03T15:33:54.1047083-04:00</DestTime>
+  <Importer>FontDescriptionImporter</Importer>
+  <ImporterTime>2025-06-02T06:31:02-04:00</ImporterTime>
+  <Processor>FontDescriptionProcessor</Processor>
+  <ProcessorTime>2025-06-02T06:31:02-04:00</ProcessorTime>
+  <Parameters>
+    <Key>PremultiplyAlpha</Key>
+    <Value>True</Value>
+  </Parameters>
+  <Parameters>
+    <Key>TextureFormat</Key>
+    <Value>Compressed</Value>
+  </Parameters>
+  <Dependencies />
+  <BuildAsset />
+  <BuildOutput />
+</PipelineBuildEvent>
