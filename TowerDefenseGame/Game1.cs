@@ -43,42 +43,28 @@ namespace TowerDefenseGame
         private const int ABILITY_BAR_HEIGHT = 7;
 
         // ===== TEXT OUTLINE CONFIGURATION =====
-        // Adjust this value to change text boldness:
-        // 0 = No outline, 1 = Thin, 1.5 = Medium, 2 = Bold, 2.5+ = Very Bold
         private const float TEXT_OUTLINE_THICKNESS = 0.25f;
 
         // ===== FONT SIZE CONFIGURATION =====
-        // Adjust these values to change text size in different parts of the UI
-        // Default scale is 1.0 (original size). Use 0.8 for smaller, 1.2 for larger, etc.
-        
-        // Main UI (top bars)
-        private const float FONT_SIZE_HP_MP_LABELS = 1.0f;      // "HP", "MP" labels
-        private const float FONT_SIZE_HP_MP_VALUES = 1.0f;      // Health and mana numbers
-        private const float FONT_SIZE_LEVEL = 1.0f;             // Level number
-        private const float FONT_SIZE_GOLD_CRYSTALS = 1.25f;    // Gold and crystal amounts
-        private const float FONT_SIZE_WAVE_LABEL = 1.0f;        // "WAVE" text
-        private const float FONT_SIZE_WAVE_NUMBER = 1.0f;       // Wave number
-        
-        // Upgrade Section (when not in battle)
-        private const float FONT_SIZE_UPGRADE_LABELS = 1.0f;    // "Upgrade Castle", "Upgrade Town Archers"
-        private const float FONT_SIZE_UPGRADE_COSTS = 1.0f;     // Upgrade prices
-        private const float FONT_SIZE_ARCHER_DAMAGE = 1.0f;     // Archer damage number
-        private const float FONT_SIZE_BATTLE_BUTTON = 1.0f;     // "BATTLE" text
-        
-        // Unit List Menu (right side panel)
-        private const float FONT_SIZE_UNIT_LIST_NAME = 0.9f;    // Unit names in list
-        private const float FONT_SIZE_UNIT_LIST_COST = 1.0f;    // Unlock costs in list
-        
-        // Unit Info Menu (center popup)
-        private const float FONT_SIZE_UNIT_INFO_STATS = 0.8f;   // Damage, Attacks/sec, Level
-        private const float FONT_SIZE_UNIT_INFO_DESC = 1.0f;   // Unit description text
-        private const float FONT_SIZE_UNIT_INFO_MP = 0.65f;     // MP cost and cooldown
-        private const float FONT_SIZE_UNIT_INFO_BUTTONS = 0.75f;// Equip/Upgrade button text
-        private const float FONT_SIZE_UNIT_INFO_COSTS = 0.65f;  // Button cost text
-        private const float FONT_SIZE_CLOSE_BUTTON = 1.0f;      // "X" button
-        
-        // Battle UI
-        private const float FONT_SIZE_SPEED_BUTTON = 1.0f;      // "1x" / "2x" text
+        private const float FONT_SIZE_HP_MP_LABELS = 1.0f;
+        private const float FONT_SIZE_HP_MP_VALUES = 1.0f;
+        private const float FONT_SIZE_LEVEL = 1.0f;
+        private const float FONT_SIZE_GOLD_CRYSTALS = 1.25f;
+        private const float FONT_SIZE_WAVE_LABEL = 1.0f;
+        private const float FONT_SIZE_WAVE_NUMBER = 1.0f;
+        private const float FONT_SIZE_UPGRADE_LABELS = 1.0f;
+        private const float FONT_SIZE_UPGRADE_COSTS = 1.0f;
+        private const float FONT_SIZE_ARCHER_DAMAGE = 1.0f;
+        private const float FONT_SIZE_BATTLE_BUTTON = 1.0f;
+        private const float FONT_SIZE_UNIT_LIST_NAME = 0.9f;
+        private const float FONT_SIZE_UNIT_LIST_COST = 1.0f;
+        private const float FONT_SIZE_UNIT_INFO_STATS = 0.8f;
+        private const float FONT_SIZE_UNIT_INFO_DESC = 1.0f;
+        private const float FONT_SIZE_UNIT_INFO_MP = 0.65f;
+        private const float FONT_SIZE_UNIT_INFO_BUTTONS = 0.75f;
+        private const float FONT_SIZE_UNIT_INFO_COSTS = 0.65f;
+        private const float FONT_SIZE_CLOSE_BUTTON = 1.0f;
+        private const float FONT_SIZE_SPEED_BUTTON = 1.0f;
 
         // Lists
         private List<Enemy> enemies = new List<Enemy>();
@@ -90,6 +76,7 @@ namespace TowerDefenseGame
         private int speed = 1;
         private bool hasteActive = false;
         private int hasteFramesLeft = 0;
+        private int hasteSlotIndex = -1; // Track which slot has haste active
 
         // Slots
         private const int MAX_SLOTS = 9;
@@ -113,7 +100,7 @@ namespace TowerDefenseGame
 
         private List<Enemy> archerTargets = new List<Enemy>();
 
-        private int frameCount = 0;
+        private long frameCount = 0; // Changed to long to prevent overflow
         private float spawnTimer = 0;
 
         private MouseState previousMouseState;
@@ -143,19 +130,16 @@ namespace TowerDefenseGame
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // Create a 1x1 white pixel texture for drawing shapes
             _pixel = new Texture2D(GraphicsDevice, 1, 1);
             _pixel.SetData(new[] { Color.White });
 
-            // Create a simple font (you'll need to add a font to your Content project)
-            // For now, we'll try to use the default system font approach
             try
             {
                 _font = Content.Load<SpriteFont>("Font");
             }
             catch
             {
-                // Font loading will be handled in the notes
+                // Font loading error handled
             }
         }
 
@@ -346,7 +330,9 @@ namespace TowerDefenseGame
             maxMana = 50 + ((castleLevel - 1) * 10);
             archerPrice = 50 + ((archerLevel - 1) * 25);
             castlePrice = 100 + ((castleLevel - 1) * 50);
-            xpRequired = 100 * (level * 0.25f);
+            
+            // FIX 1: Corrected XP required formula
+            xpRequired = 100 + (level - 1) * 25;
 
             if (!waving)
             {
@@ -402,14 +388,15 @@ namespace TowerDefenseGame
                 {
                     if (proj.Enemy != null && enemies.Contains(proj.Enemy))
                     {
-                        proj.Enemy.Health -= GetUnitStat(proj.Tower, "damage");
+                        float damage = GetUnitStat(proj.Tower, "damage", proj.SlotIndex);
+                        proj.Enemy.Health -= damage;
                         
                         if (proj.Tower.PassiveAbility == "slow")
                             proj.Enemy.Speed = Math.Max(0.5f, proj.Enemy.Speed * 0.9f);
                         else if (proj.Tower.PassiveAbility == "lifesteal")
                         {
                             if (health < maxHealth)
-                                health += GetUnitStat(proj.Tower, "damage") * 0.1f;
+                                health += damage * 0.1f;
                         }
                     }
                     projectiles.RemoveAt(i);
@@ -437,10 +424,8 @@ namespace TowerDefenseGame
                 hasteFramesLeft -= speed;
                 if (hasteFramesLeft <= 0)
                 {
-                    var archerUnit = unitsList[4];
-                    archerUnit.AttackSpeed = archerUnit.BaseAttackSpeed;
-                    archerUnit.Damage = archerUnit.BaseDamage;
                     hasteActive = false;
+                    hasteSlotIndex = -1;
                 }
             }
 
@@ -518,7 +503,11 @@ namespace TowerDefenseGame
                     if (unitIdx == null) continue;
                     
                     var unit = unitsList[unitIdx.Value];
-                    bool attackReady = frameCount % Math.Round(60 / (GetUnitStat(unit, "attackSpeed") * speed)) == 0;
+                    
+                    // FIX 2: Safer attack ready calculation
+                    float attacksPerSecond = GetUnitStat(unit, "attackSpeed", j) * speed;
+                    int framesBetweenAttacks = Math.Max(1, (int)Math.Round(60 / attacksPerSecond));
+                    bool attackReady = frameCount % framesBetweenAttacks == 0;
 
                     unitTargets[j] = CleanAndRefillTargets(unitTargets[j], unit.Targets);
 
@@ -541,7 +530,8 @@ namespace TowerDefenseGame
                                     GoingToX = t.XPos - t.Speed * 20,
                                     GoingToY = t.YPos,
                                     Tower = unit,
-                                    Enemy = t
+                                    Enemy = t,
+                                    SlotIndex = j
                                 });
                             }
                         }
@@ -560,7 +550,8 @@ namespace TowerDefenseGame
                                         break;
                                 }
 
-                                t.Health -= GetUnitStat(unit, "damage");
+                                float damage = GetUnitStat(unit, "damage", j);
+                                t.Health -= damage;
                                 effects.Add(new Effect
                                 {
                                     X = t.XPos,
@@ -609,12 +600,11 @@ namespace TowerDefenseGame
                 
                 unitAbilityCooldowns = new List<int>(new int[activeSlots]);
 
+                // Reset haste when wave ends
                 if (hasteActive)
                 {
-                    var archerUnit = unitsList[4];
-                    archerUnit.AttackSpeed = archerUnit.BaseAttackSpeed;
-                    archerUnit.Damage = archerUnit.BaseDamage;
                     hasteActive = false;
+                    hasteSlotIndex = -1;
                 }
             }
 
@@ -635,12 +625,11 @@ namespace TowerDefenseGame
                 
                 unitAbilityCooldowns = new List<int>(new int[activeSlots]);
 
+                // Reset haste on defeat
                 if (hasteActive)
                 {
-                    var archerUnit = unitsList[4];
-                    archerUnit.AttackSpeed = archerUnit.BaseAttackSpeed;
-                    archerUnit.Damage = archerUnit.BaseDamage;
                     hasteActive = false;
+                    hasteSlotIndex = -1;
                 }
             }
         }
@@ -655,12 +644,16 @@ namespace TowerDefenseGame
             };
 
             var enemyTemplate = enemyTypes[random.Next(enemyTypes.Length)];
+            
+            // FIX 3: Better enemy damage scaling
+            float damageMultiplier = 1 + (wave - 1) * 0.15f;
+            
             enemies.Add(new Enemy
             {
                 Name = enemyTemplate.Name,
                 Health = enemyTemplate.Health * (float)Math.Pow(1.06, wave - 1),
                 MaxHealth = enemyTemplate.Health * (float)Math.Pow(1.06, wave - 1),
-                Damage = enemyTemplate.Damage * (wave / 6f),
+                Damage = enemyTemplate.Damage * damageMultiplier,
                 AttackSpeed = enemyTemplate.AttackSpeed,
                 Speed = enemyTemplate.Speed,
                 GoldGiven = enemyTemplate.GoldGiven + wave,
@@ -680,15 +673,19 @@ namespace TowerDefenseGame
             };
 
             var bossTemplate = bossTypes[random.Next(bossTypes.Length)];
+            
+            // FIX 3: Better boss damage scaling
+            float damageMultiplier = 1 + (wave - 1) * 0.15f;
+            
             enemies.Add(new Enemy
             {
                 Name = bossTemplate.Name,
                 Health = bossTemplate.Health * (float)Math.Pow(1.06, wave - 1),
                 MaxHealth = bossTemplate.Health * (float)Math.Pow(1.06, wave - 1),
-                Damage = bossTemplate.Damage * (wave / 6f),
+                Damage = bossTemplate.Damage * damageMultiplier,
                 AttackSpeed = bossTemplate.AttackSpeed,
                 Speed = bossTemplate.Speed,
-                GoldGiven = bossTemplate.GoldGiven + wave,
+                GoldGiven = bossTemplate.GoldGiven + wave * 5,
                 XpGiven = bossTemplate.XpGiven,
                 XPos = 720 + 30,
                 YPos = 250 + (float)(random.NextDouble() * 50)
@@ -707,21 +704,37 @@ namespace TowerDefenseGame
             return arr;
         }
 
-        private float GetUnitStat(Unit unit, string stat)
+        // FIX 4: Added slotIndex parameter to properly handle haste
+        private float GetUnitStat(Unit unit, string stat, int slotIndex = -1)
         {
             int lvl = unit.Lvl;
             
             if (stat == "damage")
-                return (float)Math.Round(unit.Damage * Math.Pow(1.075, lvl - 1));
+            {
+                float baseDamage = (float)Math.Round(unit.Damage * Math.Pow(1.075, lvl - 1));
+                
+                // Apply haste bonus if active for this slot
+                if (hasteActive && slotIndex == hasteSlotIndex)
+                    return baseDamage * 2;
+                
+                return baseDamage;
+            }
             
             if (stat == "attackSpeed")
             {
+                float baseSpeed;
                 if (lvl <= 10)
-                    return (float)(unit.AttackSpeed * Math.Pow(1.01, lvl - 1));
+                    baseSpeed = (float)(unit.AttackSpeed * Math.Pow(1.01, lvl - 1));
                 else if (lvl <= 20)
-                    return (float)(unit.AttackSpeed * Math.Pow(1.01, 9) * Math.Pow(1.005, lvl - 10));
+                    baseSpeed = (float)(unit.AttackSpeed * Math.Pow(1.01, 9) * Math.Pow(1.005, lvl - 10));
                 else
-                    return (float)(unit.AttackSpeed * Math.Pow(1.01, 9) * Math.Pow(1.005, 10) * Math.Pow(1.001, lvl - 20));
+                    baseSpeed = (float)(unit.AttackSpeed * Math.Pow(1.01, 9) * Math.Pow(1.005, 10) * Math.Pow(1.001, lvl - 20));
+                
+                // Apply haste bonus if active for this slot
+                if (hasteActive && slotIndex == hasteSlotIndex)
+                    return baseSpeed * 2;
+                
+                return baseSpeed;
             }
             
             if (stat == "abilityMpCost")
@@ -939,9 +952,10 @@ namespace TowerDefenseGame
         {
             if (unit.Ability == "meteor shower")
             {
+                float damage = GetUnitStat(unit, "damage", slotIndex);
                 foreach (var enemy in enemies)
                 {
-                    enemy.Health -= 2.5f * GetUnitStat(unit, "damage");
+                    enemy.Health -= 2.5f * damage;
                     effects.Add(new Effect
                     {
                         X = enemy.XPos,
@@ -953,16 +967,23 @@ namespace TowerDefenseGame
             }
             else if (unit.Ability == "lightning strike")
             {
+                // FIX 5: Improved lightning strike target selection
                 var targets = new List<Enemy>();
-                for (int i = 0; i < Math.Min(20, enemies.Count); i++)
+                int targetCount = Math.Min(20, enemies.Count);
+                
+                // Create a shuffled list of all enemies
+                var shuffledEnemies = enemies.OrderBy(x => random.Next()).ToList();
+                
+                // Take the first targetCount enemies
+                for (int i = 0; i < targetCount; i++)
                 {
-                    var e = enemies[random.Next(enemies.Count)];
-                    if (!targets.Contains(e))
-                        targets.Add(e);
+                    targets.Add(shuffledEnemies[i]);
                 }
+                
+                float damage = GetUnitStat(unit, "damage", slotIndex);
                 foreach (var t in targets)
                 {
-                    t.Health -= 5 * GetUnitStat(unit, "damage");
+                    t.Health -= 5 * damage;
                     effects.Add(new Effect
                     {
                         X = t.XPos,
@@ -974,9 +995,10 @@ namespace TowerDefenseGame
             }
             else if (unit.Ability == "ice spikes")
             {
+                float damage = GetUnitStat(unit, "damage", slotIndex);
                 foreach (var enemy in enemies)
                 {
-                    enemy.Health -= 1.5f * GetUnitStat(unit, "damage");
+                    enemy.Health -= 1.5f * damage;
                     enemy.Speed = Math.Max(0.5f, enemy.Speed * 0.6f);
                     effects.Add(new Effect
                     {
@@ -989,12 +1011,10 @@ namespace TowerDefenseGame
             }
             else if (unit.Ability == "haste" && !hasteActive)
             {
-                unit.BaseAttackSpeed = unit.AttackSpeed;
-                unit.BaseDamage = unit.Damage;
-                unit.AttackSpeed = unit.BaseAttackSpeed * 2;
-                unit.Damage = unit.BaseDamage * 2;
+                // FIX 6: Properly handle haste with level scaling
                 hasteActive = true;
-                hasteFramesLeft = 300;
+                hasteSlotIndex = slotIndex;
+                hasteFramesLeft = 300; // 5 seconds at 60 FPS
             }
         }
 
@@ -1007,6 +1027,10 @@ namespace TowerDefenseGame
 
         private float GetLineY(float xCurr, float x1, float y1, float x2, float y2)
         {
+            // FIX 7: Handle vertical lines
+            if (Math.Abs(x2 - x1) < 0.01f)
+                return y1;
+            
             float slope = (y2 - y1) / (x2 - x1);
             float yInt = y1 - slope * x1;
             return slope * xCurr + yInt;
@@ -1136,7 +1160,16 @@ namespace TowerDefenseGame
                 if (slotAssignments[i] != null)
                 {
                     var unit = unitsList[slotAssignments[i].Value];
-                    DrawRect(slot.X + 9, slot.Y + 8, slot.Width - 18, slot.Height - 16, unit.Col, new Color(80, 80, 80), 1);
+                    Color unitColor = unit.Col;
+                    
+                    // FIX 8: Visual indicator for haste
+                    if (hasteActive && hasteSlotIndex == i)
+                    {
+                        // Make the unit glow when haste is active
+                        unitColor = Color.Lerp(unit.Col, Color.White, 0.3f);
+                    }
+                    
+                    DrawRect(slot.X + 9, slot.Y + 8, slot.Width - 18, slot.Height - 16, unitColor, new Color(80, 80, 80), 1);
                 }
 
                 if (selectedSlot == i && menuOpen)
@@ -1372,9 +1405,8 @@ namespace TowerDefenseGame
         {
             if (_font != null)
             {
-                Vector2 position = new Vector2(x, y - 4); // Shift up by 4 pixels to match p5.js baseline
+                Vector2 position = new Vector2(x, y - 4);
                 
-                // Draw black outline (8 directions) - only if thickness > 0
                 if (TEXT_OUTLINE_THICKNESS > 0)
                 {
                     Vector2[] offsets = new Vector2[]
@@ -1390,7 +1422,6 @@ namespace TowerDefenseGame
                     }
                 }
                 
-                // Draw main text
                 _spriteBatch.DrawString(_font, text, position, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
             }
         }
@@ -1405,7 +1436,6 @@ namespace TowerDefenseGame
 
             foreach (string word in words)
             {
-                // Handle newlines in the text
                 if (word.Contains("\n"))
                 {
                     string[] parts = word.Split('\n');
@@ -1515,6 +1545,7 @@ namespace TowerDefenseGame
         public float GoingToY { get; set; }
         public Unit Tower { get; set; }
         public Enemy Enemy { get; set; }
+        public int SlotIndex { get; set; } // FIX 9: Track which slot fired this projectile
     }
 
     public class Effect

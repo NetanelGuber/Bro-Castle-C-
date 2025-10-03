@@ -24,3 +24,4 @@ D:\Coding\Fun Ideas\Bro Castle\TowerDefenseGame\obj\Debug\net6.0\refint\TowerDef
 D:\Coding\Fun Ideas\Bro Castle\TowerDefenseGame\obj\Debug\net6.0\TowerDefenseGame.pdb
 D:\Coding\Fun Ideas\Bro Castle\TowerDefenseGame\obj\Debug\net6.0\TowerDefenseGame.genruntimeconfig.cache
 D:\Coding\Fun Ideas\Bro Castle\TowerDefenseGame\obj\Debug\net6.0\ref\TowerDefenseGame.dll
+D:\Coding\Fun Ideas\Bro Castle\TowerDefenseGame\obj\Debug\net6.0\TowerDefenseGame.sourcelink.json
