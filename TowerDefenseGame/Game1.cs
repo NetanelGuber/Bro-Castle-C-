@@ -43,7 +43,7 @@ namespace TowerDefenseGame
         private const int ABILITY_BAR_HEIGHT = 7;
 
         // ===== TEXT OUTLINE CONFIGURATION =====
-        private const float TEXT_OUTLINE_THICKNESS = 0.25f;
+        private const float TEXT_OUTLINE_THICKNESS = 0.05f;
 
         // ===== FONT SIZE CONFIGURATION =====
         private const float FONT_SIZE_HP_MP_LABELS = 1.0f;
@@ -56,11 +56,11 @@ namespace TowerDefenseGame
         private const float FONT_SIZE_UPGRADE_COSTS = 1.0f;
         private const float FONT_SIZE_ARCHER_DAMAGE = 1.0f;
         private const float FONT_SIZE_BATTLE_BUTTON = 1.0f;
-        private const float FONT_SIZE_UNIT_LIST_NAME = 0.9f;
+        private const float FONT_SIZE_UNIT_LIST_NAME = 1.0f;
         private const float FONT_SIZE_UNIT_LIST_COST = 1.0f;
-        private const float FONT_SIZE_UNIT_INFO_STATS = 0.8f;
+        private const float FONT_SIZE_UNIT_INFO_STATS = 1.0f;
         private const float FONT_SIZE_UNIT_INFO_DESC = 1.0f;
-        private const float FONT_SIZE_UNIT_INFO_MP = 0.65f;
+        private const float FONT_SIZE_UNIT_INFO_MP = 1.0f;
         private const float FONT_SIZE_UNIT_INFO_BUTTONS = 0.75f;
         private const float FONT_SIZE_UNIT_INFO_COSTS = 0.65f;
         private const float FONT_SIZE_CLOSE_BUTTON = 1.0f;
@@ -1545,7 +1545,7 @@ namespace TowerDefenseGame
         public float GoingToY { get; set; }
         public Unit Tower { get; set; }
         public Enemy Enemy { get; set; }
-        public int SlotIndex { get; set; } // FIX 9: Track which slot fired this projectile
+        public int SlotIndex { get; set; }
     }
 
     public class Effect
