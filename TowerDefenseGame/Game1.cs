@@ -310,7 +310,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "White Mage",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = Color.White,
@@ -352,7 +352,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "Necromancer",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = new Color(75, 0, 130),
@@ -373,7 +373,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "Military Band",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = new Color(218, 165, 32),
@@ -394,7 +394,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "Priest",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = new Color(255, 215, 0),
@@ -415,7 +415,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "Tiny Giant",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = new Color(205, 133, 63),
@@ -457,7 +457,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "Smith",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = new Color(192, 192, 192),
@@ -499,7 +499,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "Knight",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = new Color(169, 169, 169),
@@ -520,7 +520,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "Lisa",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = new Color(255, 192, 203),
@@ -541,7 +541,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "Alice",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = new Color(255, 160, 122),
@@ -562,7 +562,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "Dorothy",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = new Color(221, 160, 221),
@@ -583,7 +583,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "Druid",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = new Color(34, 139, 34),
@@ -625,7 +625,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "Windy",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = new Color(176, 224, 230),
@@ -646,7 +646,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "Angel",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = new Color(255, 250, 250),
@@ -688,7 +688,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "Golem Master",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = new Color(105, 105, 105),
@@ -751,7 +751,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "Defender",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = new Color(70, 130, 180),
@@ -793,7 +793,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "Alchemist",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = new Color(50, 205, 50),
@@ -835,7 +835,7 @@ namespace TowerDefenseGame
             unitsList.Add(new Unit
             {
                 Name = "Chrono",
-                Damage = 0,
+                Damage = 10,
                 AttackSpeed = 0f,
                 Targets = 0,
                 Col = new Color(138, 43, 226),
@@ -1270,43 +1270,107 @@ namespace TowerDefenseGame
                     if (enemy.CharmTimer <= 0)
                     {
                         enemy.IsCharmed = false;
+                        enemy.AttackingTarget = null;
+                        enemy.CharmTarget = null;
                     }
                 }
                 
-                // Skip movement if frozen, frog, or charmed
-                if (enemy.FreezeTimer <= 0 && !enemy.IsFrog && !enemy.IsCharmed)
+                // Skip movement if frozen or frog
+                if (enemy.FreezeTimer <= 0 && !enemy.IsFrog)
                 {
-                    // Check if blocked by summon
-                    bool blockedBySummon = false;
-                    foreach (var summon in summons)
+                    if (!enemy.IsCharmed)
                     {
-                        if (!summon.IsStationary && Math.Abs(enemy.XPos - summon.XPos) < 30)
+                        // Regular enemy behavior
+                        // Check if blocked by summon
+                        bool blockedBySummon = false;
+                        Summon blockingSummon = null;
+                        
+                        foreach (var summon in summons)
                         {
-                            blockedBySummon = true;
-                            break;
+                            if (!summon.Immortal && !summon.IsStationary && Math.Abs(enemy.XPos - summon.XPos) < 30)
+                            {
+                                blockedBySummon = true;
+                                blockingSummon = summon;
+                                break;
+                            }
                         }
-                    }
-                    
-                    if (!blockedBySummon)
-                    {
-                        enemy.XPos -= enemy.Speed * effectiveSpeed;
-
-                        if (enemy.XPos < 275)
+                        
+                        if (!blockedBySummon)
                         {
-                            enemy.Speed = 0;
-                            float damageToHealth = (enemy.Damage / (60f / enemy.AttackSpeed)) * effectiveSpeed;
-                            damageToHealth *= (1f - castleDefense);
-                            health -= damageToHealth;
+                            enemy.XPos -= enemy.Speed * effectiveSpeed;
+                            enemy.AttackingTarget = null;
+
+                            if (enemy.XPos < 275)
+                            {
+                                enemy.Speed = 0;
+                                float damageToHealth = (enemy.Damage / (60f / enemy.AttackSpeed)) * effectiveSpeed;
+                                damageToHealth *= (1f - castleDefense);
+                                health -= damageToHealth;
+                            }
+                        }
+                        else
+                        {
+                            // Enemy attacks summon (one-to-one targeting)
+                            if (enemy.AttackingTarget == null || !summons.Contains(enemy.AttackingTarget))
+                            {
+                                // Find a summon that's not being attacked
+                                var availableSummon = summons.FirstOrDefault(s => !s.Immortal && !s.IsStationary && 
+                                    Math.Abs(enemy.XPos - s.XPos) < 30 && 
+                                    !enemies.Any(e => e.AttackingTarget == s && e != enemy));
+                                
+                                if (availableSummon != null)
+                                {
+                                    enemy.AttackingTarget = availableSummon;
+                                }
+                            }
+                            
+                            if (enemy.AttackingTarget != null && summons.Contains(enemy.AttackingTarget))
+                            {
+                                float damageToSummon = (enemy.Damage / (60f / enemy.AttackSpeed)) * effectiveSpeed;
+                                enemy.AttackingTarget.TimeLeft -= (int)damageToSummon;
+                            }
+                            else
+                            {
+                                enemy.AttackingTarget = null;
+                            }
                         }
                     }
                     else
                     {
-                        // Enemy attacks summon
-                        var targetSummon = summons.FirstOrDefault(s => !s.IsStationary && Math.Abs(enemy.XPos - s.XPos) < 30);
-                        if (targetSummon != null)
+                        // Charmed enemy behaves like a summon - moves forward and attacks enemies
+                        var validTargets = enemies.Where(e => !e.IsCharmed && !e.IsFrog && e != enemy).ToList();
+                        
+                        if (enemy.CharmTarget == null || !validTargets.Contains(enemy.CharmTarget) || enemy.CharmTarget.Health <= 0)
                         {
-                            float damageToSummon = (enemy.Damage / (60f / enemy.AttackSpeed)) * effectiveSpeed;
-                            targetSummon.TimeLeft -= (int)damageToSummon;
+                            // Find a new target that's not being attacked by another charmed enemy
+                            var availableTarget = validTargets
+                                .Where(e => !enemies.Any(ce => ce.IsCharmed && ce.CharmTarget == e && ce != enemy))
+                                .OrderBy(e => e.XPos)
+                                .FirstOrDefault();
+                            
+                            enemy.CharmTarget = availableTarget;
+                        }
+                        
+                        if (enemy.CharmTarget != null)
+                        {
+                            if (Math.Abs(enemy.XPos - enemy.CharmTarget.XPos) > 25)
+                            {
+                                // Move toward target
+                                enemy.XPos += enemy.Speed * effectiveSpeed;
+                            }
+                            else
+                            {
+                                // Attack target
+                                if (frameCount % Math.Max(1, (int)(60 / (enemy.AttackSpeed * effectiveSpeed))) == 0)
+                                {
+                                    enemy.CharmTarget.Health -= enemy.Damage;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // No target, just move forward
+                            enemy.XPos += enemy.Speed * effectiveSpeed;
                         }
                     }
                 }
@@ -1324,9 +1388,6 @@ namespace TowerDefenseGame
                     numOfEnemies--;
                 }
             }
-
-            // Charmed enemies attack regular enemies
-            UpdateCharmedEnemies();
 
             // Summon updates
             UpdateSummons();
@@ -1376,8 +1437,8 @@ namespace TowerDefenseGame
                 unitAbilityCooldowns = new List<int>(new int[activeSlots]);
                 passiveTimers = new List<int>(new int[activeSlots]);
 
-                // Clear non-immortal summons
-                summons.RemoveAll(s => !s.Immortal);
+                // Clear ALL summons at wave end (including immortal ones)
+                summons.Clear();
                 
                 // Reset buffs
                 foreach (var buff in slotBuffs.Values)
@@ -1447,23 +1508,6 @@ namespace TowerDefenseGame
             return bonus;
         }
 
-        private void UpdateCharmedEnemies()
-        {
-            float effectiveSpeed = GetEffectiveSpeed();
-            
-            var charmedEnemies = enemies.Where(e => e.IsCharmed).ToList();
-            var regularEnemies = enemies.Where(e => !e.IsCharmed && !e.IsFrog).ToList();
-            
-            foreach (var charmedEnemy in charmedEnemies)
-            {
-                if (regularEnemies.Count > 0 && frameCount % (60 / (int)effectiveSpeed) == 0)
-                {
-                    var target = regularEnemies[random.Next(regularEnemies.Count)];
-                    target.Health -= charmedEnemy.Damage;
-                }
-            }
-        }
-
         private void UpdateSummons()
         {
             float effectiveSpeed = GetEffectiveSpeed();
@@ -1483,18 +1527,18 @@ namespace TowerDefenseGame
                     }
                 }
                 
-                // Find target
-                if (summon.Target == null || !enemies.Contains(summon.Target) || summon.Target.Health <= 0 || summon.Target.IsCharmed)
+                // Find target (one-to-one targeting)
+                var validTargets = enemies.Where(e => !e.IsCharmed && !e.IsFrog).ToList();
+                
+                if (summon.Target == null || !validTargets.Contains(summon.Target) || summon.Target.Health <= 0)
                 {
-                    var validTargets = enemies.Where(e => !e.IsCharmed && !e.IsFrog).ToList();
-                    if (validTargets.Count > 0)
-                    {
-                        summon.Target = validTargets.OrderBy(e => e.XPos).First();
-                    }
-                    else
-                    {
-                        summon.Target = null;
-                    }
+                    // Find a new target that's not being attacked by another summon
+                    var availableTarget = validTargets
+                        .Where(e => !summons.Any(s => s.Target == e && s != summon))
+                        .OrderBy(e => e.XPos)
+                        .FirstOrDefault();
+                    
+                    summon.Target = availableTarget;
                 }
                 
                 // Movement and combat
@@ -1502,7 +1546,22 @@ namespace TowerDefenseGame
                 {
                     if (!summon.IsStationary)
                     {
-                        if (Math.Abs(summon.XPos - summon.Target.XPos) > 25)
+                        // Determine if this is a ranged summon
+                        bool isRanged = summon.Type == "bow skeleton" || summon.Type == "mage skeleton";
+                        float attackRange = 0;
+                        
+                        if (isRanged)
+                        {
+                            attackRange = summon.Type == "bow skeleton" ? 150 : 100; // Alice has longer range than Dorothy
+                        }
+                        else
+                        {
+                            attackRange = 25; // Melee range
+                        }
+                        
+                        float distanceToTarget = Math.Abs(summon.XPos - summon.Target.XPos);
+                        
+                        if (distanceToTarget > attackRange)
                         {
                             summon.XPos += summon.Speed * effectiveSpeed;
                         }
@@ -1515,13 +1574,32 @@ namespace TowerDefenseGame
                                 damage *= (1f + globalDefenseReduction);
                                 summon.Target.Health -= damage;
                                 
-                                effects.Add(new Effect
+                                // Create projectile for ranged summons
+                                if (isRanged)
                                 {
-                                    X = summon.Target.XPos,
-                                    Y = summon.Target.YPos - 15,
-                                    Timer = 15,
-                                    Col = summon.Col
-                                });
+                                    projectiles.Add(new Projectile
+                                    {
+                                        FromX = summon.XPos,
+                                        FromY = summon.YPos,
+                                        X = summon.XPos,
+                                        Y = summon.YPos,
+                                        GoingToX = summon.Target.XPos,
+                                        GoingToY = summon.Target.YPos,
+                                        Tower = new Unit { Col = summon.Col },
+                                        Enemy = summon.Target,
+                                        SlotIndex = -1
+                                    });
+                                }
+                                else
+                                {
+                                    effects.Add(new Effect
+                                    {
+                                        X = summon.Target.XPos,
+                                        Y = summon.Target.YPos - 15,
+                                        Timer = 15,
+                                        Col = summon.Col
+                                    });
+                                }
                             }
                         }
                     }
@@ -1661,7 +1739,7 @@ namespace TowerDefenseGame
                                 // Apply boss slayer
                                 if (unit.PassiveAbility == "boss slayer" && t.IsBoss)
                                 {
-                                    damage *= 2f;
+                                    damage *= GetAbilityScaling(unit, "damageMultiplier");
                                 }
                                 
                                 t.Health -= damage;
@@ -1703,7 +1781,8 @@ namespace TowerDefenseGame
                             int targetCount = Math.Min(5, validTargets.Count);
                             var targets = validTargets.OrderBy(x => random.Next()).Take(targetCount).ToList();
                             
-                            float damage = GetUnitStat(unit, "damage", j) * 1.5f;
+                            float damageMultiplier = GetAbilityScaling(unit, "damageMultiplier");
+                            float damage = GetUnitStat(unit, "damage", j) * damageMultiplier;
                             damage *= (1f + globalDefenseReduction);
                             
                             foreach (var t in targets)
@@ -1734,10 +1813,13 @@ namespace TowerDefenseGame
                             int targetCount = Math.Min(4, validTargets.Count);
                             var targets = validTargets.OrderBy(x => random.Next()).Take(targetCount).ToList();
                             
+                            int duration = (int)(180 * GetAbilityScaling(unit, "duration")); // Base 3 seconds
+                            
                             foreach (var t in targets)
                             {
                                 t.IsCharmed = true;
-                                t.CharmTimer = 180; // 3 seconds
+                                t.CharmTimer = duration;
+                                t.AttackingTarget = null;
                             }
                         }
                     }
@@ -1753,6 +1835,8 @@ namespace TowerDefenseGame
                         string summonType = unit.PassiveAbility == "summon melee" ? "melee skeleton" :
                                           unit.PassiveAbility == "summon bow" ? "bow skeleton" : "mage skeleton";
                         
+                        float damageMultiplier = GetAbilityScaling(unit, "damageMultiplier");
+                        
                         for (int k = 0; k < 2; k++)
                         {
                             summons.Add(new Summon
@@ -1761,7 +1845,7 @@ namespace TowerDefenseGame
                                 XPos = 250,
                                 YPos = 280 + k * 20,
                                 Speed = 1.5f,
-                                Damage = GetUnitStat(unit, "damage", j),
+                                Damage = GetUnitStat(unit, "damage", j) * damageMultiplier,
                                 AttackSpeed = 1f,
                                 TimeLeft = 900, // 15 seconds
                                 Col = unit.Col,
@@ -1773,6 +1857,45 @@ namespace TowerDefenseGame
                     }
                 }
             }
+        }
+
+        private float GetAbilityScaling(Unit unit, string scalingType)
+        {
+            int lvl = Math.Min(unit.Lvl, 51);
+            float scaling = 1f;
+            
+            // Base formula: linear from 1.0 at level 1 to 2.0 at level 51
+            float levelProgress = (lvl - 1) / 50f; // 0.0 to 1.0
+            
+            switch (scalingType)
+            {
+                case "damageMultiplier":
+                    // Damage multipliers scale from base to 2x base (e.g., 100% -> 200% or 150% -> 300%)
+                    scaling = 1f + levelProgress;
+                    break;
+                    
+                case "duration":
+                    // Duration scales from 1x to 2x (e.g., 3 seconds -> 6 seconds)
+                    scaling = 1f + levelProgress;
+                    break;
+                    
+                case "attackSpeedMultiplier":
+                    // Attack speed bonuses scale from base to 2x base (e.g., 100% -> 200%)
+                    scaling = 1f + levelProgress;
+                    break;
+                    
+                case "critChanceBonus":
+                    // Crit chance bonuses scale from base to 2x base (e.g., 10% -> 20%)
+                    scaling = 1f + levelProgress;
+                    break;
+                    
+                case "critDamageBonus":
+                    // Crit damage bonuses scale from base to 2x base (e.g., 150% -> 300%)
+                    scaling = 1f + levelProgress;
+                    break;
+            }
+            
+            return scaling;
         }
 
         private void SelectRandomEnemy()
@@ -1804,7 +1927,9 @@ namespace TowerDefenseGame
                 IsFrog = false,
                 FrogTimer = 0,
                 IsCharmed = false,
-                CharmTimer = 0
+                CharmTimer = 0,
+                AttackingTarget = null,
+                CharmTarget = null
             });
         }
 
@@ -1837,7 +1962,9 @@ namespace TowerDefenseGame
                 IsFrog = false,
                 FrogTimer = 0,
                 IsCharmed = false,
-                CharmTimer = 0
+                CharmTimer = 0,
+                AttackingTarget = null,
+                CharmTarget = null
             });
         }
 
@@ -2134,13 +2261,15 @@ namespace TowerDefenseGame
                     unitAbilityCooldowns = new List<int>(new int[activeSlots]);
                     passiveTimers = new List<int>(new int[activeSlots]);
                     
-                    // Spawn immortal summons
+                    // Spawn immortal summons AT THE START OF WAVE
                     for (int i = 0; i < slotAssignments.Count; i++)
                     {
                         var unitIdx = slotAssignments[i];
                         if (unitIdx != null)
                         {
                             var unit = unitsList[unitIdx.Value];
+                            
+                            float damageMultiplier = GetAbilityScaling(unit, "damageMultiplier");
                             
                             // Druid ent
                             if (unit.PassiveAbility == "summon ent")
@@ -2151,7 +2280,7 @@ namespace TowerDefenseGame
                                     XPos = 250,
                                     YPos = 300,
                                     Speed = 1f,
-                                    Damage = GetUnitStat(unit, "damage", i) * 2f, // 200% damage
+                                    Damage = GetUnitStat(unit, "damage", i) * (2f * damageMultiplier), // 200% base damage, scaled
                                     AttackSpeed = 0.8f,
                                     TimeLeft = 999999,
                                     Col = Color.Brown,
@@ -2170,7 +2299,7 @@ namespace TowerDefenseGame
                                     XPos = 250,
                                     YPos = 280,
                                     Speed = 0.8f,
-                                    Damage = GetUnitStat(unit, "damage", i) * 4f, // 400% damage
+                                    Damage = GetUnitStat(unit, "damage", i) * (4f * damageMultiplier), // 400% base damage, scaled
                                     AttackSpeed = 0.6f,
                                     TimeLeft = 999999,
                                     Col = Color.Gray,
@@ -2210,32 +2339,44 @@ namespace TowerDefenseGame
             // Rapid Fire (Archer)
             if (unit.Ability == "rapid fire")
             {
-                slotBuffs[slotIndex].AttackSpeedBonus = 1f; // 100% bonus
+                float attackSpeedMultiplier = GetAbilityScaling(unit, "attackSpeedMultiplier");
+                int duration = (int)(300 * GetAbilityScaling(unit, "duration")); // Base 5 seconds
+                
+                slotBuffs[slotIndex].AttackSpeedBonus = attackSpeedMultiplier;
                 slotBuffs[slotIndex].DamageBonus = 0f;
-                slotBuffs[slotIndex].AttackSpeedBonusTimer = 300; // 5 seconds
+                slotBuffs[slotIndex].AttackSpeedBonusTimer = duration;
             }
             // Rally Archers (Hunter)
             else if (unit.Ability == "rally archers")
             {
-                archerBuffs.AttackSpeedBonus = 1f; // 100% bonus
-                archerBuffs.AttackSpeedBonusTimer = 180; // 3 seconds
+                float attackSpeedMultiplier = GetAbilityScaling(unit, "attackSpeedMultiplier");
+                int duration = (int)(180 * GetAbilityScaling(unit, "duration")); // Base 3 seconds
+                
+                archerBuffs.AttackSpeedBonus = attackSpeedMultiplier;
+                archerBuffs.AttackSpeedBonusTimer = duration;
             }
             // Death Mark (Dark Skeleton)
             else if (unit.Ability == "death mark")
             {
-                archerBuffs.CritChanceBonus = 0.1f; // 10% bonus
-                archerBuffs.CritChanceBonusTimer = 180; // 3 seconds
+                float critChanceBonus = 0.1f * GetAbilityScaling(unit, "critChanceBonus"); // Base 10%
+                int duration = (int)(180 * GetAbilityScaling(unit, "duration")); // Base 3 seconds
+                
+                archerBuffs.CritChanceBonus = critChanceBonus;
+                archerBuffs.CritChanceBonusTimer = duration;
                 archerCritChance = 0.01f + archerBuffs.CritChanceBonus;
             }
             // Deep Freeze (Ice Mage)
             else if (unit.Ability == "deep freeze")
             {
+                float damageMultiplier = 0.5f * GetAbilityScaling(unit, "damageMultiplier"); // Base 50%
+                int duration = (int)(240 * GetAbilityScaling(unit, "duration")); // Base 4 seconds
+                
                 foreach (var enemy in enemies)
                 {
                     if (!enemy.IsCharmed && !enemy.IsFrog)
                     {
-                        enemy.FreezeTimer = 240; // 4 seconds
-                        enemy.Health -= damage * 0.5f;
+                        enemy.FreezeTimer = duration;
+                        enemy.Health -= damage * damageMultiplier;
                         effects.Add(new Effect
                         {
                             X = enemy.XPos,
@@ -2249,13 +2390,15 @@ namespace TowerDefenseGame
             // Thunderstorm (Lightning Mage)
             else if (unit.Ability == "thunderstorm")
             {
+                float damageMultiplier = 2f * GetAbilityScaling(unit, "damageMultiplier"); // Base 200%
+                
                 var validTargets = enemies.Where(e => !e.IsCharmed && !e.IsFrog).ToList();
                 int targetCount = Math.Min(8, validTargets.Count);
                 var targets = validTargets.OrderBy(x => random.Next()).Take(targetCount).ToList();
                 
                 foreach (var t in targets)
                 {
-                    t.Health -= damage * 2f; // 200% damage
+                    t.Health -= damage * damageMultiplier;
                     effects.Add(new Effect
                     {
                         X = t.XPos,
@@ -2268,13 +2411,15 @@ namespace TowerDefenseGame
             // Meteor (Fire Mage)
             else if (unit.Ability == "meteor")
             {
+                float damageMultiplier = 5f * GetAbilityScaling(unit, "damageMultiplier"); // Base 500%
+                
                 var validTargets = enemies.Where(e => !e.IsCharmed && !e.IsFrog).ToList();
                 int targetCount = Math.Min(5, validTargets.Count);
                 var targets = validTargets.OrderBy(x => random.Next()).Take(targetCount).ToList();
                 
                 foreach (var t in targets)
                 {
-                    t.Health -= damage * 5f; // 500% damage
+                    t.Health -= damage * damageMultiplier;
                     effects.Add(new Effect
                     {
                         X = t.XPos,
@@ -2306,25 +2451,33 @@ namespace TowerDefenseGame
             // Curse (Necromancer)
             else if (unit.Ability == "curse")
             {
-                globalDefenseReduction = 0.5f; // 50% more damage (equivalent to -50% defense)
-                globalDefenseReductionTimer = 180; // 3 seconds
+                float defenseReduction = 0.5f * GetAbilityScaling(unit, "damageMultiplier"); // Base 50%
+                int duration = (int)(180 * GetAbilityScaling(unit, "duration")); // Base 3 seconds
+                
+                globalDefenseReduction = defenseReduction;
+                globalDefenseReductionTimer = duration;
             }
             // Bless Summons (Priest)
             else if (unit.Ability == "bless summons")
             {
-                summonDamageBonus = 0.3f; // 30% bonus
-                summonDamageTimer = 180; // 3 seconds
+                float damageBonus = 0.3f * GetAbilityScaling(unit, "damageMultiplier"); // Base 30%
+                int duration = (int)(180 * GetAbilityScaling(unit, "duration")); // Base 3 seconds
+                
+                summonDamageBonus = damageBonus;
+                summonDamageTimer = duration;
             }
             // Summon Giant (Tiny Giant)
             else if (unit.Ability == "summon giant")
             {
+                float damageMultiplier = 4f * GetAbilityScaling(unit, "damageMultiplier"); // Base 400%
+                
                 summons.Add(new Summon
                 {
                     Type = "giant",
                     XPos = 250,
                     YPos = 280,
                     Speed = 1.2f,
-                    Damage = damage * 4f, // 400% damage
+                    Damage = damage * damageMultiplier,
                     AttackSpeed = 0.7f,
                     TimeLeft = 900, // 15 seconds
                     Col = Color.SaddleBrown,
@@ -2336,15 +2489,17 @@ namespace TowerDefenseGame
             // Summon Slingers (Slinger)
             else if (unit.Ability == "summon slingers")
             {
+                float damageMultiplier = GetAbilityScaling(unit, "damageMultiplier");
+                
                 for (int i = 0; i < 5; i++)
                 {
                     summons.Add(new Summon
                     {
                         Type = "slinger",
-                        XPos = 220 + i * 10,
-                        YPos = 280 + i * 15,
+                        XPos = 220,
+                        YPos = 260 + i * 20, // Spawn vertically aligned
                         Speed = 0f,
-                        Damage = damage, // 100% damage
+                        Damage = damage * damageMultiplier,
                         AttackSpeed = 1f,
                         TimeLeft = 900, // 15 seconds
                         Col = Color.Peru,
@@ -2363,13 +2518,15 @@ namespace TowerDefenseGame
             // Poison Cloud (Voodoo)
             else if (unit.Ability == "poison cloud")
             {
+                float damageMultiplier = 2f * GetAbilityScaling(unit, "damageMultiplier"); // Base 200%
+                
                 // Deal damage over 3 seconds (180 frames)
                 int damagePerFrame = 180 / (int)GetEffectiveSpeed();
                 foreach (var enemy in enemies)
                 {
                     if (!enemy.IsCharmed && !enemy.IsFrog)
                     {
-                        enemy.Health -= (damage * 2f) / damagePerFrame;
+                        enemy.Health -= (damage * damageMultiplier) / damagePerFrame;
                         effects.Add(new Effect
                         {
                             X = enemy.XPos,
@@ -2383,6 +2540,8 @@ namespace TowerDefenseGame
             // Summon Knights (Knight)
             else if (unit.Ability == "summon knights")
             {
+                float damageMultiplier = GetAbilityScaling(unit, "damageMultiplier");
+                
                 for (int i = 0; i < 5; i++)
                 {
                     summons.Add(new Summon
@@ -2391,7 +2550,7 @@ namespace TowerDefenseGame
                         XPos = 250,
                         YPos = 270 + i * 20,
                         Speed = 1.5f,
-                        Damage = damage, // 100% damage
+                        Damage = damage * damageMultiplier,
                         AttackSpeed = 1f,
                         TimeLeft = 900, // 15 seconds
                         Col = Color.Silver,
@@ -2404,11 +2563,13 @@ namespace TowerDefenseGame
             // Shadow Strike (Assassin)
             else if (unit.Ability == "shadow strike")
             {
+                float damageMultiplier = 0.8f * GetAbilityScaling(unit, "damageMultiplier"); // Base 80%
+                
                 foreach (var enemy in enemies)
                 {
                     if (!enemy.IsCharmed && !enemy.IsFrog)
                     {
-                        enemy.Health -= damage * 0.8f; // 80% damage
+                        enemy.Health -= damage * damageMultiplier;
                         effects.Add(new Effect
                         {
                             X = enemy.XPos,
@@ -2422,12 +2583,14 @@ namespace TowerDefenseGame
             // Tornado (Windy)
             else if (unit.Ability == "tornado")
             {
+                float damageMultiplier = GetAbilityScaling(unit, "damageMultiplier");
+                
                 // This would need special visual handling, simplified here
                 foreach (var enemy in enemies)
                 {
                     if (!enemy.IsCharmed && !enemy.IsFrog)
                     {
-                        enemy.Health -= damage;
+                        enemy.Health -= damage * damageMultiplier;
                         effects.Add(new Effect
                         {
                             X = enemy.XPos,
@@ -2441,6 +2604,8 @@ namespace TowerDefenseGame
             // Summon Angels (Angel)
             else if (unit.Ability == "summon angels")
             {
+                float damageMultiplier = GetAbilityScaling(unit, "damageMultiplier");
+                
                 for (int i = 0; i < 5; i++)
                 {
                     summons.Add(new Summon
@@ -2449,7 +2614,7 @@ namespace TowerDefenseGame
                         XPos = 250,
                         YPos = 260 + i * 20,
                         Speed = 2f,
-                        Damage = damage, // 100% damage
+                        Damage = damage * damageMultiplier,
                         AttackSpeed = 1.2f,
                         TimeLeft = 900, // 15 seconds
                         Col = Color.White,
@@ -2462,9 +2627,12 @@ namespace TowerDefenseGame
             // Demonic Speed (Succubus)
             else if (unit.Ability == "demonic speed")
             {
-                slotBuffs[slotIndex].AttackSpeedBonus = 2f; // 200% bonus
+                float attackSpeedMultiplier = 2f * GetAbilityScaling(unit, "attackSpeedMultiplier"); // Base 200%
+                int duration = (int)(300 * GetAbilityScaling(unit, "duration")); // Base 5 seconds
+                
+                slotBuffs[slotIndex].AttackSpeedBonus = attackSpeedMultiplier;
                 slotBuffs[slotIndex].DamageBonus = 0f;
-                slotBuffs[slotIndex].AttackSpeedBonusTimer = 300; // 5 seconds
+                slotBuffs[slotIndex].AttackSpeedBonusTimer = duration;
             }
             // Polymorph (Alchemist)
             else if (unit.Ability == "polymorph")
@@ -2483,13 +2651,15 @@ namespace TowerDefenseGame
             // Shadow Clone (Rogue)
             else if (unit.Ability == "shadow clone")
             {
+                float damageMultiplier = 2f * GetAbilityScaling(unit, "damageMultiplier"); // Base 200%
+                
                 var validTargets = enemies.Where(e => !e.IsCharmed && !e.IsFrog).ToList();
                 int targetCount = Math.Min(4, validTargets.Count);
                 var targets = validTargets.OrderBy(x => random.Next()).Take(targetCount).ToList();
                 
                 foreach (var t in targets)
                 {
-                    t.Health -= damage * 2f; // 200% damage
+                    t.Health -= damage * damageMultiplier;
                     effects.Add(new Effect
                     {
                         X = t.XPos,
@@ -2502,13 +2672,15 @@ namespace TowerDefenseGame
             // Blizzard (Ice Sorceress)
             else if (unit.Ability == "blizzard")
             {
+                float damageMultiplier = GetAbilityScaling(unit, "damageMultiplier");
+                
                 var validTargets = enemies.Where(e => !e.IsCharmed && !e.IsFrog).ToList();
                 int targetCount = Math.Min(8, validTargets.Count);
                 var targets = validTargets.OrderBy(x => random.Next()).Take(targetCount).ToList();
                 
                 foreach (var t in targets)
                 {
-                    t.Health -= damage; // 100% damage
+                    t.Health -= damage * damageMultiplier;
                     effects.Add(new Effect
                     {
                         X = t.XPos,
@@ -2547,6 +2719,7 @@ namespace TowerDefenseGame
             DrawUI();
             DrawSlots();
             DrawAbilityBars();
+            DrawPassiveBars();
             DrawArchers();
             DrawEnemies();
             DrawSummons();
@@ -2696,11 +2869,46 @@ namespace TowerDefenseGame
 
                 var slot = slotRects[i];
                 int barX = slot.X + slot.Width / 2 - ABILITY_BAR_WIDTH / 2;
-                int barY = slot.Y - 10;
+                
+                // Position based on whether there's also a passive bar
+                int barY = unit.PassiveAbility != "none" && HasPassiveTimer(unit) ? slot.Y - 18 : slot.Y - 10;
 
                 DrawRect(barX, barY, ABILITY_BAR_WIDTH, ABILITY_BAR_HEIGHT, Color.Black);
                 DrawRect(barX, barY, (int)(ABILITY_BAR_WIDTH * percentReady), ABILITY_BAR_HEIGHT, new Color(50, 140, 255));
             }
+        }
+
+        private void DrawPassiveBars()
+        {
+            for (int i = 0; i < activeSlots; i++)
+            {
+                var unitIdx = slotAssignments[i];
+                if (unitIdx == null) continue;
+
+                var unit = unitsList[unitIdx.Value];
+                if (!HasPassiveTimer(unit)) continue;
+
+                // 10 seconds = 600 frames
+                int totalFrames = 600;
+                float percentReady = passiveTimers[i] > 0 ? 1 - (passiveTimers[i] / (float)totalFrames) : 1;
+                percentReady = Math.Max(0, Math.Min(1, percentReady));
+
+                var slot = slotRects[i];
+                int barX = slot.X + slot.Width / 2 - ABILITY_BAR_WIDTH / 2;
+                int barY = slot.Y - 10;
+
+                DrawRect(barX, barY, ABILITY_BAR_WIDTH, ABILITY_BAR_HEIGHT, Color.Black);
+                DrawRect(barX, barY, (int)(ABILITY_BAR_WIDTH * percentReady), ABILITY_BAR_HEIGHT, new Color(138, 43, 226)); // Purple
+            }
+        }
+
+        private bool HasPassiveTimer(Unit unit)
+        {
+            return unit.PassiveAbility == "thunder god" || 
+                   unit.PassiveAbility == "charm" ||
+                   unit.PassiveAbility == "summon melee" ||
+                   unit.PassiveAbility == "summon bow" ||
+                   unit.PassiveAbility == "summon mage";
         }
 
         private void DrawArchers()
@@ -3074,75 +3282,64 @@ namespace TowerDefenseGame
             float mpCost = GetUnitStat(unit, "abilityMpCost");
             float cooldown = GetUnitStat(unit, "abilityCooldown");
             
+            // Get scaling values
+            float damageMultiplier = GetAbilityScaling(unit, "damageMultiplier");
+            float durationMultiplier = GetAbilityScaling(unit, "duration");
+            float attackSpeedMultiplier = GetAbilityScaling(unit, "attackSpeedMultiplier");
+            float critChanceMultiplier = GetAbilityScaling(unit, "critChanceBonus");
+            
             string desc = "";
+            int lvl = Math.Min(unit.Lvl, 51);
             
             switch (unit.Ability)
             {
                 case "rapid fire":
-                    desc = $"Rapid Fire\n\nIncreases this hero's attack speed by 100% for 5 seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
+                    desc = $"Rapid Fire\n\nIncreases this hero's attack speed by {attackSpeedMultiplier * 100:F0}% for {5 * durationMultiplier:F1} seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s\n\n(Level {lvl}: Attack speed bonus scales with level)";
                     break;
                 case "rally archers":
-                    desc = $"Rally Archers\n\nIncreases town archer attack speed by 100% for 3 seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
+                    desc = $"Rally Archers\n\nIncreases town archer attack speed by {attackSpeedMultiplier * 100:F0}% for {3 * durationMultiplier:F1} seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s\n\n(Level {lvl}: Bonus and duration scale with level)";
                     break;
                 case "death mark":
-                    desc = $"Death Mark\n\nIncreases town archer critical hit chance by 10% for 3 seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
+                    desc = $"Death Mark\n\nIncreases town archer critical hit chance by {0.1f * critChanceMultiplier * 100:F1}% for {3 * durationMultiplier:F1} seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s\n\n(Level {lvl}: Crit bonus and duration scale)";
                     break;
                 case "deep freeze":
-                    desc = $"Deep Freeze\n\nFreezes all monsters for 4 seconds and deals {damage * 0.5f:F1} damage to each.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
+                    desc = $"Deep Freeze\n\nFreezes all monsters for {4 * durationMultiplier:F1} seconds and deals {damage * 0.5f * damageMultiplier:F1} damage to each.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s\n\n(Level {lvl}: Damage and duration scale)";
                     break;
                 case "thunderstorm":
-                    desc = $"Thunderstorm\n\nHits 8 random monsters dealing {damage * 2f:F1} damage each.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
+                    desc = $"Thunderstorm\n\nHits 8 random monsters dealing {damage * 2f * damageMultiplier:F1} damage each.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s\n\n(Level {lvl}: Damage scales with level)";
                     break;
                 case "meteor":
-                    desc = $"Meteor\n\nHits 5 random monsters dealing {damage * 5f:F1} damage each.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
-                    break;
-                case "cooldown reset":
-                    desc = $"Cooldown Reset\n\nReduces all hero ability cooldowns by 3 seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
-                    break;
-                case "shockwave":
-                    desc = $"Shockwave\n\nKnocks back all monsters on the field.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
+                    desc = $"Meteor\n\nHits 5 random monsters dealing {damage * 5f * damageMultiplier:F1} damage each.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s\n\n(Level {lvl}: Damage scales with level)";
                     break;
                 case "curse":
-                    desc = $"Curse\n\nCauses all monsters to take 50% more damage for 3 seconds (reduces their defense).\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
+                    desc = $"Curse\n\nCauses all monsters to take {0.5f * damageMultiplier * 100:F0}% more damage for {3 * durationMultiplier:F1} seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s\n\n(Level {lvl}: Bonus and duration scale)";
                     break;
                 case "bless summons":
-                    desc = $"Bless Summons\n\nIncreases all summoned unit damage by 30% for 3 seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
+                    desc = $"Bless Summons\n\nIncreases all summoned unit damage by {0.3f * damageMultiplier * 100:F0}% for {3 * durationMultiplier:F1} seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s\n\n(Level {lvl}: Bonus and duration scale)";
                     break;
                 case "summon giant":
-                    desc = $"Summon Giant\n\nSummons 1 giant that deals {damage * 4f:F1} damage per hit for 15 seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
+                    desc = $"Summon Giant\n\nSummons 1 giant that deals {damage * 4f * damageMultiplier:F1} damage per hit for 15 seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s\n\n(Level {lvl}: Summon damage scales)";
                     break;
                 case "summon slingers":
-                    desc = $"Summon Slingers\n\nSummons 5 stationary slingers that deal {damage:F1} damage each for 15 seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
-                    break;
-                case "repair":
-                    desc = $"Repair\n\nRestores {maxHealth * 0.2f:F0} HP to the castle (20% of max HP).\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
-                    break;
-                case "poison cloud":
-                    desc = $"Poison Cloud\n\nCreates a poison cloud dealing {damage * 2f:F1} total damage over 3 seconds to all ground enemies.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
+                    desc = $"Summon Slingers\n\nSummons 5 stationary slingers that deal {damage * damageMultiplier:F1} damage each for 15 seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s\n\n(Level {lvl}: Summon damage scales)";
                     break;
                 case "summon knights":
-                    desc = $"Summon Knights\n\nSummons 5 knights that deal {damage:F1} damage each for 15 seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
+                    desc = $"Summon Knights\n\nSummons 5 knights that deal {damage * damageMultiplier:F1} damage each for 15 seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s\n\n(Level {lvl}: Summon damage scales)";
                     break;
                 case "shadow strike":
-                    desc = $"Shadow Strike\n\nHits ALL monsters on the field for {damage * 0.8f:F1} damage each.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
-                    break;
-                case "tornado":
-                    desc = $"Tornado\n\nCreates a tornado that sweeps across the field over 3 seconds dealing {damage:F1} damage to all enemies.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
+                    desc = $"Shadow Strike\n\nHits ALL monsters on the field for {damage * 0.8f * damageMultiplier:F1} damage each.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s\n\n(Level {lvl}: Damage scales with level)";
                     break;
                 case "summon angels":
-                    desc = $"Summon Angels\n\nSummons 5 flying angels that deal {damage:F1} damage each for 15 seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
+                    desc = $"Summon Angels\n\nSummons 5 flying angels that deal {damage * damageMultiplier:F1} damage each for 15 seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s\n\n(Level {lvl}: Summon damage scales)";
                     break;
                 case "demonic speed":
-                    desc = $"Demonic Speed\n\nIncreases this hero's attack speed by 200% for 5 seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
-                    break;
-                case "polymorph":
-                    desc = $"Polymorph\n\nTransforms 2 random enemies into harmless frogs for 15 seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
+                    desc = $"Demonic Speed\n\nIncreases this hero's attack speed by {2f * attackSpeedMultiplier * 100:F0}% for {5 * durationMultiplier:F1} seconds.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s\n\n(Level {lvl}: Bonus and duration scale)";
                     break;
                 case "shadow clone":
-                    desc = $"Shadow Clone\n\nCreates 4 clones that attack 4 random enemies once for {damage * 2f:F1} damage each.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
+                    desc = $"Shadow Clone\n\nCreates 4 clones that attack 4 random enemies once for {damage * 2f * damageMultiplier:F1} damage each.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s\n\n(Level {lvl}: Damage scales with level)";
                     break;
                 case "blizzard":
-                    desc = $"Blizzard\n\nHits 8 random enemies with ice shards for {damage:F1} damage each.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s";
+                    desc = $"Blizzard\n\nHits 8 random enemies with ice shards for {damage * damageMultiplier:F1} damage each.\n\nCost: {mpCost:F0} MP\nCooldown: {cooldown:F0}s\n\n(Level {lvl}: Damage scales with level)";
                     break;
                 default:
                     desc = unit.Desc;
@@ -3160,15 +3357,16 @@ namespace TowerDefenseGame
             float damage = GetUnitStat(unit, "damage", -1);
             int lvl = Math.Min(unit.Lvl, 51);
             
+            // Get scaling
+            float damageMultiplier = GetAbilityScaling(unit, "damageMultiplier");
+            float durationMultiplier = GetAbilityScaling(unit, "duration");
+            
             string desc = "";
             
             switch (unit.PassiveAbility)
             {
                 case "boss slayer":
-                    desc = "Boss Slayer\n\nThis hero deals 100% bonus damage (2x total) to boss enemies.";
-                    break;
-                case "mana steal":
-                    desc = "Mana Steal\n\nSteals 2% of damage dealt as MP. This helps regenerate mana during combat.";
+                    desc = $"Boss Slayer\n\nThis hero deals {damageMultiplier * 100:F0}% bonus damage to boss enemies.\n\n(Level {lvl}: Scales with level, currently {damageMultiplier:F2}x)";
                     break;
                 case "prosperity":
                     float goldBonus = 0.02f + (lvl - 1) * 0.02f;
@@ -3179,35 +3377,29 @@ namespace TowerDefenseGame
                     desc = $"Fortify\n\nIncreases castle defense by {defenseBonus * 100:F1}%, reducing incoming damage.\n\nScales with level (currently level {unit.Lvl}).";
                     break;
                 case "summon ent":
-                    desc = $"Summon Ent\n\nAt the start of each wave, summons 1 immortal ent that deals {damage * 2f:F1} damage and increases castle defense by 5%.\n\nThe ent cannot die and lasts the entire wave.";
+                    desc = $"Summon Ent\n\nAt the start of each wave, summons 1 immortal ent that deals {damage * 2f * damageMultiplier:F1} damage and increases castle defense by 5%.\n\nThe ent cannot die and lasts the entire wave.\n\n(Level {lvl}: Damage scales)";
                     break;
                 case "summon golem":
-                    desc = $"Summon Golem\n\nAt the start of each wave, summons 1 immortal stone golem that deals {damage * 4f:F1} damage.\n\nThe golem cannot die and lasts the entire wave.";
+                    desc = $"Summon Golem\n\nAt the start of each wave, summons 1 immortal stone golem that deals {damage * 4f * damageMultiplier:F1} damage.\n\nThe golem cannot die and lasts the entire wave.\n\n(Level {lvl}: Damage scales)";
                     break;
                 case "summon melee":
-                    desc = $"Summon Melee Skeletons\n\nEvery 10 seconds, automatically summons 2 melee skeletons that deal {damage:F1} damage each for 15 seconds.";
+                    desc = $"Summon Melee Skeletons\n\nEvery 10 seconds, automatically summons 2 melee skeletons that deal {damage * damageMultiplier:F1} damage each for 15 seconds.\n\n(Level {lvl}: Damage scales with level)";
                     break;
                 case "summon bow":
-                    desc = $"Summon Bow Skeletons\n\nEvery 10 seconds, automatically summons 2 bow skeletons that deal {damage:F1} damage each for 15 seconds.";
+                    desc = $"Summon Bow Skeletons\n\nEvery 10 seconds, automatically summons 2 bow skeletons that deal {damage * damageMultiplier:F1} damage each for 15 seconds.\n\n(Level {lvl}: Damage scales with level)";
                     break;
                 case "summon mage":
-                    desc = $"Summon Mage Skeletons\n\nEvery 10 seconds, automatically summons 2 mage skeletons that deal {damage:F1} damage each for 15 seconds.";
+                    desc = $"Summon Mage Skeletons\n\nEvery 10 seconds, automatically summons 2 mage skeletons that deal {damage * damageMultiplier:F1} damage each for 15 seconds.\n\n(Level {lvl}: Damage scales with level)";
                     break;
                 case "thunder god":
-                    desc = $"Thunder God\n\nEvery 10 seconds, automatically hits 5 random enemies for {damage * 1.5f:F1} damage each (150% damage).";
+                    desc = $"Thunder God\n\nEvery 10 seconds, automatically hits 5 random enemies for {damage * 1.5f * damageMultiplier:F1} damage each.\n\n(Level {lvl}: Damage scales with level)";
                     break;
                 case "charm":
-                    desc = "Charm\n\nEvery 10 seconds, converts 4 random enemies to fight for your side for 3 seconds before reverting.";
+                    desc = $"Charm\n\nEvery 10 seconds, converts 4 random enemies to fight for your side for {3 * durationMultiplier:F1} seconds before reverting.\n\n(Level {lvl}: Duration scales with level)";
                     break;
                 case "deadly precision":
                     float totalCritDamage = GetUnitCritDamage(unit, -1);
                     desc = $"Deadly Precision\n\nIncreases critical hit damage by 200% (total {totalCritDamage * 100:F0}% crit damage).";
-                    break;
-                case "time warp":
-                    desc = "Time Warp\n\nIncreases game speed by 10%, making everything happen faster during combat.";
-                    break;
-                case "divine wings":
-                    desc = "Divine Wings\n\nSummoned angels deal 100% bonus damage to flying enemies.";
                     break;
                 case "frostbite":
                     desc = "Frostbite\n\nHas a 20% chance to freeze enemies hit for 2 seconds.";
@@ -3353,6 +3545,8 @@ namespace TowerDefenseGame
         public int FrogTimer { get; set; }
         public bool IsCharmed { get; set; }
         public int CharmTimer { get; set; }
+        public Summon AttackingTarget { get; set; } // For when regular enemies attack summons
+        public Enemy CharmTarget { get; set; } // For when charmed enemies attack other enemies
     }
 
     public class Unit
