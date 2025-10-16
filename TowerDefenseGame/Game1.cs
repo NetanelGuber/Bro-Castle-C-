@@ -32,7 +32,7 @@ namespace TowerDefenseGame
         private int archerLevel = 1;
         private float archerDamage = 4;
         private int archerPrice = 50;
-        private float archerCritChance = 0.01f; // 1% base crit chance
+        private float archerCritChance = 0.05f; // 5% base crit chance
         private float archerCritDamage = 1.5f; // 150% crit damage
 
         private int castleLevel = 1;
@@ -1281,17 +1281,35 @@ namespace TowerDefenseGame
                     if (!enemy.IsCharmed)
                     {
                         // Regular enemy behavior
-                        // Check if blocked by summon
+                        // Check if blocked by summon (one-to-one targeting)
                         bool blockedBySummon = false;
                         Summon blockingSummon = null;
                         
-                        foreach (var summon in summons)
+                        // First check if this enemy already has a target
+                        if (enemy.AttackingTarget != null && summons.Contains(enemy.AttackingTarget))
                         {
-                            if (!summon.Immortal && !summon.IsStationary && Math.Abs(enemy.XPos - summon.XPos) < 30)
+                            blockedBySummon = true;
+                            blockingSummon = enemy.AttackingTarget;
+                        }
+                        else
+                        {
+                            // Look for a nearby summon that isn't already being attacked
+                            foreach (var summon in summons)
                             {
-                                blockedBySummon = true;
-                                blockingSummon = summon;
-                                break;
+                                if (!summon.Immortal && !summon.IsStationary && Math.Abs(enemy.XPos - summon.XPos) < 30)
+                                {
+                                    // Check if this summon is already being attacked by another enemy
+                                    bool summonBeingAttacked = enemies.Any(e => e != enemy && e.AttackingTarget == summon);
+                                    
+                                    if (!summonBeingAttacked)
+                                    {
+                                        // This summon is available to be attacked
+                                        blockedBySummon = true;
+                                        blockingSummon = summon;
+                                        enemy.AttackingTarget = summon;
+                                        break;
+                                    }
+                                }
                             }
                         }
                         
@@ -1311,19 +1329,6 @@ namespace TowerDefenseGame
                         else
                         {
                             // Enemy attacks summon (one-to-one targeting)
-                            if (enemy.AttackingTarget == null || !summons.Contains(enemy.AttackingTarget))
-                            {
-                                // Find a summon that's not being attacked
-                                var availableSummon = summons.FirstOrDefault(s => !s.Immortal && !s.IsStationary && 
-                                    Math.Abs(enemy.XPos - s.XPos) < 30 && 
-                                    !enemies.Any(e => e.AttackingTarget == s && e != enemy));
-                                
-                                if (availableSummon != null)
-                                {
-                                    enemy.AttackingTarget = availableSummon;
-                                }
-                            }
-                            
                             if (enemy.AttackingTarget != null && summons.Contains(enemy.AttackingTarget))
                             {
                                 float damageToSummon = (enemy.Damage / (60f / enemy.AttackSpeed)) * effectiveSpeed;
@@ -1511,6 +1516,7 @@ namespace TowerDefenseGame
         private void UpdateSummons()
         {
             float effectiveSpeed = GetEffectiveSpeed();
+            const float MAX_IMMORTAL_RANGE = 300f; // Maximum distance immortal summons can travel from spawn
             
             for (int i = summons.Count - 1; i >= 0; i--)
             {
@@ -1523,6 +1529,20 @@ namespace TowerDefenseGame
                     if (summon.TimeLeft <= 0)
                     {
                         summons.RemoveAt(i);
+                        continue;
+                    }
+                }
+                
+                // For immortal summons, check if they're too far from spawn
+                if (summon.Immortal && !summon.IsStationary)
+                {
+                    float distanceFromSpawn = summon.XPos - summon.SpawnX;
+                    
+                    // If too far, return to spawn and clear target
+                    if (distanceFromSpawn > MAX_IMMORTAL_RANGE)
+                    {
+                        summon.Target = null;
+                        summon.XPos -= summon.Speed * effectiveSpeed * 2f; // Move back faster
                         continue;
                     }
                 }
@@ -1563,7 +1583,24 @@ namespace TowerDefenseGame
                         
                         if (distanceToTarget > attackRange)
                         {
-                            summon.XPos += summon.Speed * effectiveSpeed;
+                            // For immortal summons, don't move if it would exceed max range
+                            if (summon.Immortal)
+                            {
+                                float distanceFromSpawn = summon.XPos - summon.SpawnX;
+                                if (distanceFromSpawn + summon.Speed * effectiveSpeed <= MAX_IMMORTAL_RANGE)
+                                {
+                                    summon.XPos += summon.Speed * effectiveSpeed;
+                                }
+                                else
+                                {
+                                    // Can't reach target without exceeding range, clear target
+                                    summon.Target = null;
+                                }
+                            }
+                            else
+                            {
+                                summon.XPos += summon.Speed * effectiveSpeed;
+                            }
                         }
                         else
                         {
@@ -1844,6 +1881,7 @@ namespace TowerDefenseGame
                                 Type = summonType,
                                 XPos = 250,
                                 YPos = 280 + k * 20,
+                                SpawnX = 250,
                                 Speed = 1.5f,
                                 Damage = GetUnitStat(unit, "damage", j) * damageMultiplier,
                                 AttackSpeed = 1f,
@@ -1982,7 +2020,7 @@ namespace TowerDefenseGame
 
         private float GetUnitStat(Unit unit, string stat, int slotIndex = -1)
         {
-            int lvl = Math.Min(unit.Lvl, 51);
+            int lvl = unit.Lvl;
             
             if (stat == "damage")
             {
@@ -2027,7 +2065,7 @@ namespace TowerDefenseGame
 
         private float GetUnitCritChance(Unit unit, int slotIndex)
         {
-            float baseCrit = 0.01f; // 1% base
+            float baseCrit = 0.05f; // 5% base
             
             // No scaling based on level
             
@@ -2279,6 +2317,7 @@ namespace TowerDefenseGame
                                     Type = "ent",
                                     XPos = 250,
                                     YPos = 300,
+                                    SpawnX = 250,
                                     Speed = 1f,
                                     Damage = GetUnitStat(unit, "damage", i) * (2f * damageMultiplier), // 200% base damage, scaled
                                     AttackSpeed = 0.8f,
@@ -2298,6 +2337,7 @@ namespace TowerDefenseGame
                                     Type = "golem",
                                     XPos = 250,
                                     YPos = 280,
+                                    SpawnX = 250,
                                     Speed = 0.8f,
                                     Damage = GetUnitStat(unit, "damage", i) * (4f * damageMultiplier), // 400% base damage, scaled
                                     AttackSpeed = 0.6f,
@@ -2476,6 +2516,7 @@ namespace TowerDefenseGame
                     Type = "giant",
                     XPos = 250,
                     YPos = 280,
+                    SpawnX = 250,
                     Speed = 1.2f,
                     Damage = damage * damageMultiplier,
                     AttackSpeed = 0.7f,
@@ -2498,6 +2539,7 @@ namespace TowerDefenseGame
                         Type = "slinger",
                         XPos = 220,
                         YPos = 260 + i * 20, // Spawn vertically aligned
+                        SpawnX = 220,
                         Speed = 0f,
                         Damage = damage * damageMultiplier,
                         AttackSpeed = 1f,
@@ -2549,6 +2591,7 @@ namespace TowerDefenseGame
                         Type = "knight",
                         XPos = 250,
                         YPos = 270 + i * 20,
+                        SpawnX = 250,
                         Speed = 1.5f,
                         Damage = damage * damageMultiplier,
                         AttackSpeed = 1f,
@@ -2613,6 +2656,7 @@ namespace TowerDefenseGame
                         Type = "angel",
                         XPos = 250,
                         YPos = 260 + i * 20,
+                        SpawnX = 250,
                         Speed = 2f,
                         Damage = damage * damageMultiplier,
                         AttackSpeed = 1.2f,
@@ -3168,16 +3212,12 @@ namespace TowerDefenseGame
                     statsY += statRowHeight;
                 }
                 
-                if (unit.Ability != "none" && unit.Lvl < 51)
+                if (unit.Ability != "none")
                 {
                     float mpChange = GetUnitStat(previewUnit, "abilityMpCost") - GetUnitStat(unit, "abilityMpCost");
                     DrawText($"Ability MP: {GetUnitStat(previewUnit, "abilityMpCost"):F0} (+{mpChange:F0})", 
                              statsX, statsY, new Color(0, 100, 200), 0.75f);
                     statsY += statRowHeight;
-                }
-                else if (unit.Lvl >= 51)
-                {
-                    DrawText("(Stats capped at 51)", statsX, statsY, new Color(150, 150, 150), 0.7f);
                 }
             }
 
@@ -3614,6 +3654,7 @@ namespace TowerDefenseGame
         public bool IsStationary { get; set; }
         public bool Immortal { get; set; }
         public Enemy Target { get; set; }
+        public float SpawnX { get; set; } // Track spawn position for immortal summons
     }
 
     public class BuffState
